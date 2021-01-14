@@ -63,10 +63,10 @@ def map_keyboard():
                 gripper.calibrate()
 
     bindings = {
-        '1': (set_j, [limb, joints[0], 0.1], joints[0]+" increase"),
-        'q': (set_j, [limb, joints[0], -0.1], joints[0]+" decrease"),
-        '2': (set_j, [limb, joints[1], 0.1], joints[1]+" increase"),
-        'w': (set_j, [limb, joints[1], -0.1], joints[1]+" decrease"),
+        '1': (set_j, [limb, joints[0], 0.01], joints[0]+" increase"),
+        'q': (set_j, [limb, joints[0], -0.01], joints[0]+" decrease"),
+        '2': (set_j, [limb, joints[1], 0.01], joints[1]+" increase"),
+        'w': (set_j, [limb, joints[1], -0.01], joints[1]+" decrease"),
         '3': (set_j, [limb, joints[2], 0.01], joints[2]+" increase"),
         'e': (set_j, [limb, joints[2], -0.01], joints[2]+" decrease"),
         '4': (set_j, [limb, joints[3], 0.01], joints[3]+" increase"),

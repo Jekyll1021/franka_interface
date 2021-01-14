@@ -39,14 +39,15 @@ import numpy as np
 from copy import deepcopy
 from rospy_message_converter import message_converter
 
-from franka_control_msgs.msg import JointCommand
-from franka_control_msgs.msg import RobotState, EndPointState
+from franka_core_msgs.msg import JointCommand
+from franka_core_msgs.msg import RobotState, EndPointState
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64
 
 import franka_dataflow
-from .robot_params import RobotParams
+from robot_params import RobotParams
 
+from franka_moveit import PandaMoveGroupInterface
 from franka_tools import FrankaFramesInterface, FrankaControllerManagerInterface, JointTrajectoryActionClient, CollisionBehaviourInterface
 
 
@@ -220,9 +221,11 @@ class ArmInterface(object):
         franka_dataflow.wait_for(lambda: self._jacobian is not None,
                                  timeout_msg=err_msg, timeout=5.0)
 
-
-        rospy.loginfo("MoveGroup was not found! This is okay if moveit service is not required!")
-        self._movegroup_interface = None
+        try:
+            self._movegroup_interface = PandaMoveGroupInterface()
+        except:
+            rospy.loginfo("MoveGroup was not found! This is okay if moveit service is not required!")
+            self._movegroup_interface = None
 
         self.set_joint_position_speed(self._speed_ratio)
 
@@ -251,7 +254,7 @@ class ArmInterface(object):
         """
         Return the joint limits (defined in the parameter server)
 
-        :rtype: franka_control_msgs.msg.JointLimits
+        :rtype: franka_core_msgs.msg.JointLimits
         :return: JointLimits
         """
         return self._joint_limits
@@ -485,17 +488,19 @@ class ArmInterface(object):
         """
         return deepcopy(self._cartesian_velocity)
 
-    def endpoint_effort(self):
+    def endpoint_effort(self, in_base_frame=True):
         """
         Return Cartesian endpoint wrench {force, torque}.
 
+        :param in_base_frame: if True, returns end-effector effort with respect to base frame, else in stiffness frame [default: True]
+        :type in_base_frame: bool
         :rtype: dict({str:np.ndarray (shape:(3,)),str:np.ndarray (shape:(3,))})
-        :return: force and torque at endpoint as named tuples in a dict
+        :return: force and torque at endpoint as named tuples in a dict in the base frame of the robot or in the stiffness frame (wrist)
 
           - 'force': Cartesian force on x,y,z axes in np.ndarray format
           - 'torque': Torque around x,y,z axes in np.ndarray format
         """
-        return deepcopy(self._cartesian_effort)
+        return deepcopy(self._cartesian_effort) if in_base_frame else deepcopy(self._stiffness_frame_effort)
 
     def exit_control_mode(self, timeout=0.2):
         """

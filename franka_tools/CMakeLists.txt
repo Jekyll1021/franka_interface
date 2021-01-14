@@ -10,7 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   franka_control
   franka_interface
-  franka_control_msgs
+  franka_core_msgs
 )
 
 ## System dependencies are found with CMake's conventions

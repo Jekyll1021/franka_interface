@@ -33,7 +33,7 @@
 import sys
 import rospy
 import socket
-from franka_control_msgs.msg import JointLimits
+from franka_core_msgs.msg import JointLimits
 
 def _log_networking_error():
     print ("Failed to connect to the ROS parameter server!\n"
@@ -98,8 +98,11 @@ class RobotParams(object):
         try:
             robot_ip = rospy.get_param("/franka_control/robot_ip")
         except KeyError:
-            rospy.logerr("RobotParam: robot_ip cannot detect robot ip."
-                         " under param /robot_ip")
+            try:
+                robot_ip = rospy.get_param("/robot_config/robot_ip")
+            except KeyError:
+                rospy.logerr("RobotParam: robot_ip cannot detect robot ip."
+                             " under param /robot_ip")
         except (socket.error, socket.gaierror):
             _log_networking_error()
 
@@ -166,7 +169,7 @@ class RobotParams(object):
         (/robot_config/joint_config/joint_velocity_limit)
 
         :return: Joint limits for each joints
-        :rtype: franka_control_msgs.msg.JointLimits
+        :rtype: franka_core_msgs.msg.JointLimits
         """
 
         lims = JointLimits()
@@ -228,8 +231,8 @@ if __name__ == '__main__':
     
     rp = RobotParams()
     # print rp.__dict__
-    print (rp.get_robot_ip())
-    print (rp.get_robot_name())
-    print (rp.get_joint_names())
+    print rp.get_robot_ip()
+    print rp.get_robot_name()
+    print rp.get_joint_names()
 
 

@@ -47,7 +47,7 @@ import sys
 
 import rospy
 
-from franka_interface import RobotEnable
+import franka_interface
 
 def main():
     rospy.init_node('panda_robot_enable')
@@ -73,11 +73,11 @@ def main():
         parser.print_usage()
         parser.exit(0, "No action defined\n")
 
-    rs = RobotEnable()
+    rs = franka_interface.RobotEnable()
     try:
         for act in args.actions:
             if act == 'state':
-                print(rs.state())
+                print rs.state()
             elif act == 'enable':
                 rs.enable()
             elif act == 'disable':
@@ -86,7 +86,7 @@ def main():
                 rs.reset()
             elif act == 'stop':
                 rs.stop()
-    except Exception as e:
+    except Exception, e:
         rospy.logerr(e)
 
     return 0

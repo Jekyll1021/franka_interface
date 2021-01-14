@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   franka_hw
   franka_control
   controller_manager
-  franka_control_msgs
+  franka_core_msgs
   geometry_msgs
   hardware_interface
   pluginlib
@@ -33,7 +33,7 @@ catkin_package(
     dynamic_reconfigure
     franka_hw
     franka_control
-    franka_control_msgs
+    franka_core_msgs
     geometry_msgs
     hardware_interface
     pluginlib

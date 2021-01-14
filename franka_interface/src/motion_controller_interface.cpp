@@ -72,10 +72,10 @@ void MotionControllerInterface::init(ros::NodeHandle& nh,
     }
   }
 
-  controller_name_to_mode_map_[position_controller_name_] = franka_control_msgs::JointCommand::POSITION_MODE;
-  controller_name_to_mode_map_[torque_controller_name_] = franka_control_msgs::JointCommand::TORQUE_MODE;
-  controller_name_to_mode_map_[impedance_controller_name_] = franka_control_msgs::JointCommand::IMPEDANCE_MODE;
-  controller_name_to_mode_map_[velocity_controller_name_] = franka_control_msgs::JointCommand::VELOCITY_MODE;
+  controller_name_to_mode_map_[position_controller_name_] = franka_core_msgs::JointCommand::POSITION_MODE;
+  controller_name_to_mode_map_[torque_controller_name_] = franka_core_msgs::JointCommand::TORQUE_MODE;
+  controller_name_to_mode_map_[impedance_controller_name_] = franka_core_msgs::JointCommand::IMPEDANCE_MODE;
+  controller_name_to_mode_map_[velocity_controller_name_] = franka_core_msgs::JointCommand::VELOCITY_MODE;
   controller_name_to_mode_map_[trajectory_controller_name_] = -1;
 
   if (! default_defined){
@@ -90,7 +90,7 @@ void MotionControllerInterface::init(ros::NodeHandle& nh,
   joint_command_timeout_sub_ = nh.subscribe("/franka_ros_interface/motion_controller/arm/joint_command_timeout", 1,
                        &MotionControllerInterface::jointCommandTimeoutCallback, this);
   double command_timeout_default;
-  nh.param<double>("command_timeout", command_timeout_default, 0.2);
+  nh.param<double>("/controllers_config/command_timeout", command_timeout_default, 0.2);
   auto p_cmd_timeout_length = std::make_shared<ros::Duration>(std::min(1.0,
                                 std::max(0.0, command_timeout_default)));
   box_timeout_length_.set(p_cmd_timeout_length);
@@ -111,9 +111,6 @@ void MotionControllerInterface::commandTimeoutCheck(const ros::TimerEvent& e) {
   box_cmd_timeout_.get(p_cmd_msg_time);
   bool command_timeout = (p_cmd_msg_time && p_timeout_length &&
       ((ros::Time::now() - *p_cmd_msg_time.get()) > (*p_timeout_length.get())));
-
-  // ROS_WARN_STREAM("now time " << ros::Time::now() << " msg time " << *p_cmd_msg_time.get() << " timeout " << *p_timeout_length.get());
-
   if(command_timeout && (current_controller_name_ != default_controller_name_)) {
     // Timeout violated, force robot back to Default Controller Mode
 
@@ -165,28 +162,28 @@ bool MotionControllerInterface::switchControllers(int control_mode) {
   {
     switch (control_mode)
     {
-      case franka_control_msgs::JointCommand::POSITION_MODE:
+      case franka_core_msgs::JointCommand::POSITION_MODE:
         start_controllers.push_back(position_controller_name_);
         stop_controllers.push_back(impedance_controller_name_);
         stop_controllers.push_back(torque_controller_name_);
         stop_controllers.push_back(velocity_controller_name_);
         stop_controllers.push_back(trajectory_controller_name_);
         break;
-      case franka_control_msgs::JointCommand::IMPEDANCE_MODE:
+      case franka_core_msgs::JointCommand::IMPEDANCE_MODE:
         start_controllers.push_back(impedance_controller_name_);
         stop_controllers.push_back(position_controller_name_);
         stop_controllers.push_back(torque_controller_name_);
         stop_controllers.push_back(velocity_controller_name_);
         stop_controllers.push_back(trajectory_controller_name_);
         break;
-      case franka_control_msgs::JointCommand::TORQUE_MODE:
+      case franka_core_msgs::JointCommand::TORQUE_MODE:
         start_controllers.push_back(torque_controller_name_);
         stop_controllers.push_back(position_controller_name_);
         stop_controllers.push_back(impedance_controller_name_);
         stop_controllers.push_back(velocity_controller_name_);
         stop_controllers.push_back(trajectory_controller_name_);
         break;
-      case franka_control_msgs::JointCommand::VELOCITY_MODE:
+      case franka_core_msgs::JointCommand::VELOCITY_MODE:
         start_controllers.push_back(velocity_controller_name_);
         stop_controllers.push_back(position_controller_name_);
         stop_controllers.push_back(impedance_controller_name_);
@@ -215,7 +212,7 @@ bool MotionControllerInterface::switchControllers(int control_mode) {
   return true;
 }
 
-void MotionControllerInterface::jointCommandCallback(const franka_control_msgs::JointCommandConstPtr& msg) {
+void MotionControllerInterface::jointCommandCallback(const franka_core_msgs::JointCommandConstPtr& msg) {
   // lock out other thread(s) which are getting called back via ros.
   std::lock_guard<std::mutex> guard(mtx_);
   if(switchControllers(msg->mode)) {
